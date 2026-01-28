@@ -1,29 +1,21 @@
 # -------- Stage 1: Build --------
-FROM amazoncorretto:21-alpine-jdk AS build
+FROM maven:3.9-eclipse-temurin-23 AS build
 WORKDIR /app
 
 COPY pom.xml .
-COPY mvnw .
-COPY .mvn .mvn
-RUN chmod +x mvnw
+RUN mvn dependency:go-offline
 
-# Cache dependencies
-RUN ./mvnw dependency:go-offline
-
-# Copy sources and build
 COPY src src
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 
 # -------- Stage 2: Runtime --------
-FROM amazoncorretto:21-alpine-jdk
+FROM eclipse-temurin:23-jdk
 WORKDIR /app
 
-# Optional but recommended for Spring Boot
 VOLUME /tmp
 
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
-
 ENTRYPOINT ["java", "-jar", "/app/app.jar", "--spring.profiles.active=prod"]
