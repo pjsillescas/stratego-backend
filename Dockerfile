@@ -1,5 +1,5 @@
 # -------- Stage 1: Build --------
-FROM openjdk:24-jdk AS build
+FROM amazoncorretto:21-alpine-jdk AS build
 WORKDIR /app
 
 COPY pom.xml .
@@ -16,7 +16,7 @@ RUN ./mvnw clean package -DskipTests
 
 
 # -------- Stage 2: Runtime --------
-FROM openjdk:24-jdk
+FROM amazoncorretto:21-alpine-jdk
 WORKDIR /app
 
 # Optional but recommended for Spring Boot
