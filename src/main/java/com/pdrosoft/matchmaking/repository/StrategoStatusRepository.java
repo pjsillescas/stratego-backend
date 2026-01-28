@@ -13,6 +13,6 @@ public interface StrategoStatusRepository
 		extends JpaRepository<StrategoStatus, Long>, JpaSpecificationExecutor<StrategoStatus> {
 
 	default Optional<StrategoStatus> findByGameId(Long gameId) {
-		return findOne((root, _, cb) -> cb.equal(root.get("game").get("id"), gameId));
+		return findOne((root, query, cb) -> cb.equal(root.get("game").get("id"), gameId));
 	}
 }

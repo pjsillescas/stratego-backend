@@ -13,6 +13,6 @@ public interface StrategoMovementRepository
 		extends JpaRepository<StrategoMovement, Long>, JpaSpecificationExecutor<StrategoMovement> {
 
 	default List<StrategoMovement> findAllByGameId(Long gameId) {
-		return findAll((root, _, cb) -> cb.equal(root.get("game").get("id"), gameId));
+		return findAll((root, query, cb) -> cb.equal(root.get("game").get("id"), gameId));
 	}
 }

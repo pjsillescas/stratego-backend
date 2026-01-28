@@ -45,14 +45,14 @@ public class GameDAOImpl implements GameDAO {
 	}
 
 	private PlayerDTO toPlayerDTO(Player player) {
-		return Optional.ofNullable(player).map(_ -> PlayerDTO.builder() //
+		return Optional.ofNullable(player).map(x -> PlayerDTO.builder() //
 				.id(player.getId()) //
 				.username(player.getUserName()) //
 				.build()).orElse(null);
 	}
 
 	private GameDTO toGameDTO(Game game) {
-		return Optional.ofNullable(game).map(_ -> GameDTO.builder() //
+		return Optional.ofNullable(game).map(x -> GameDTO.builder() //
 				.id(game.getId()) //
 				.creationDate(game.getCreationDate()) //
 				.name(game.getName()) //
@@ -63,7 +63,7 @@ public class GameDAOImpl implements GameDAO {
 	}
 
 	private GameExtendedDTO toGameExtendedDTO(Game game) {
-		return Optional.ofNullable(game).map(_ -> GameExtendedDTO.builder() //
+		return Optional.ofNullable(game).map(x -> GameExtendedDTO.builder() //
 				.id(game.getId()) //
 				.creationDate(game.getCreationDate()) //
 				.name(game.getName()) //
