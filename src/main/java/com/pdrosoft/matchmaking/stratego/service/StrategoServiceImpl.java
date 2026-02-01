@@ -318,6 +318,7 @@ public class StrategoServiceImpl implements StrategoService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public GameStateDTO getStatus(Long gameId, Player player) {
 		System.out.println((player == null) ? "player IS null" : "valid player");
 		var game = gameRepository.findById(gameId)
