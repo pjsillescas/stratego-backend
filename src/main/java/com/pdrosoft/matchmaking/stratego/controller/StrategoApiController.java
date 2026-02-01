@@ -32,6 +32,7 @@ public class StrategoApiController {
 	@PutMapping(path = "/setup", produces = { "application/json" })
 	public GameStateDTO addSetup(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
 			@PathVariable("gameId") Long gameId, @RequestBody @Valid ArmySetupDTO setupDto) {
+		System.out.println("apply setup");
 		return strategoService.addSetup(gameId, userDetails.getPlayer(), setupDto);
 	}
 
