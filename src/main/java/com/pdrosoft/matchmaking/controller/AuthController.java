@@ -23,9 +23,11 @@ import com.pdrosoft.matchmaking.service.MatchmakingService;
 
 import jakarta.validation.Valid;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor(onConstructor_ = { @Autowired })
 public class AuthController {
 
 	@NonNull
@@ -37,15 +39,8 @@ public class AuthController {
 	@NonNull
 	private final MatchmakingService matchmakingService;
 
-	public AuthController(@Autowired AuthenticationManager authManager, @Autowired JwtUtil jwtUtil,
-			@Autowired MatchmakingService matchmakingService) {
-		this.authManager = authManager;
-		this.jwtUtil = jwtUtil;
-		this.matchmakingService = matchmakingService;
-	}
-
 	@PutMapping("/login")
-	//@PostMapping("/login")
+	// @PostMapping("/login")
 	public LoginResultDTO login(@Valid @RequestBody UserAuthDTO request, Errors errors) {
 		if (errors.hasErrors()) {
 			throw new MatchmakingValidationException(errors.getFieldErrors().stream().map(FieldError::getDefaultMessage)//

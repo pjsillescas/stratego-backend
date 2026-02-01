@@ -173,7 +173,7 @@ public class StrategoServiceImpl implements StrategoService {
 		} else { // if (GamePhase.WAITING_FOR_SETUP_2_PLAYERS.equals(game.getPhase())) {
 			game.setPhase(GamePhase.WAITING_FOR_SETUP_1_PLAYER);
 		}
-		
+
 		System.out.println("setting phase " + game.getPhase());
 
 		gameRepository.save(game);
@@ -319,6 +319,7 @@ public class StrategoServiceImpl implements StrategoService {
 
 	@Override
 	public GameStateDTO getStatus(Long gameId, Player player) {
+		System.out.println((player == null) ? "player IS null" : "valid player");
 		var game = gameRepository.findById(gameId)
 				.orElseThrow(() -> new MatchmakingValidationException("Game does not exist"));
 		System.out.println("get game " + game.getId());
@@ -332,10 +333,12 @@ public class StrategoServiceImpl implements StrategoService {
 
 		// var movement = strategoMovementRepository.findAllByGameId(gameId).getLast();
 		var allMovements = strategoMovementRepository.findAllByGameId(gameId);
-		var movement = Optional.ofNullable((allMovements == null || allMovements.size() == 0) ? null : allMovements.getLast());
+		var movement = Optional
+				.ofNullable((allMovements == null || allMovements.size() == 0) ? null : allMovements.getLast());
 		System.out.println("get movements");
 
 		var isHost = player.equals(status.getGame().getHost());
+		System.out.println("ishost: " + isHost);
 		var statusdto = GameStateDTO.builder() //
 				.currentPlayer(toPlayerDTO(player)) //
 				.hostPlayerId(Optional.ofNullable(game.getHost()).map(Player::getId).orElse(0)) //

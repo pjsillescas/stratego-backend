@@ -25,7 +25,8 @@ public class MatchmakingUserDetailsServiceImpl implements MatchmakingUserDetails
 
 	private UserDetails toUserDetails(Player player) {
 		return MatchmakingUserDetails.builder().userName(player.getUserName()) //
-				.password("{bcrypt}%s".formatted(player.getPassword())) // {noop} = no encoding
+				//.password("{bcrypt}%s".formatted(player.getPassword())) // {noop} = no encoding
+				.password(player.getPassword()) //
 				.authorities(List.of(new SimpleGrantedAuthority("USER"))) //
 				.player(player) //
 				.build();
