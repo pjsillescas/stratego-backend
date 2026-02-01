@@ -336,7 +336,7 @@ public class StrategoServiceImpl implements StrategoService {
 		System.out.println("get movements");
 
 		var isHost = player.equals(status.getGame().getHost());
-		return GameStateDTO.builder() //
+		var statusdto = GameStateDTO.builder() //
 				.currentPlayer(toPlayerDTO(player)) //
 				.hostPlayerId(Optional.ofNullable(game.getHost()).map(Player::getId).orElse(0)) //
 				.guestPlayerId(Optional.ofNullable(game.getGuest()).map(Player::getId).orElse(0)) //
@@ -346,6 +346,8 @@ public class StrategoServiceImpl implements StrategoService {
 				.board(board) //
 				.isMyTurn(isHost && !status.getIsGuestTurn() || !isHost && status.getIsGuestTurn()) //
 				.build();
+		System.out.println("dto");
+		return statusdto;
 	}
 
 }
