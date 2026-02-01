@@ -321,15 +321,19 @@ public class StrategoServiceImpl implements StrategoService {
 	public GameStateDTO getStatus(Long gameId, Player player) {
 		var game = gameRepository.findById(gameId)
 				.orElseThrow(() -> new MatchmakingValidationException("Game does not exist"));
+		System.out.println("get game " + game.getId());
 
 		List<List<BoardTileDTO>> board = null;
 		var status = strategoStatusRepository.findByGameId(gameId)
 				.orElseThrow(() -> new MatchmakingValidationException("Game has not been started"));
+		System.out.println("get status" + status.getId());
+
 		board = status.getBoard();
 
 		// var movement = strategoMovementRepository.findAllByGameId(gameId).getLast();
 		var allMovements = strategoMovementRepository.findAllByGameId(gameId);
-		var movement = Optional.ofNullable((allMovements.size() == 0) ? null : allMovements.getLast());
+		var movement = Optional.ofNullable((allMovements == null || allMovements.size() == 0) ? null : allMovements.getLast());
+		System.out.println("get movements");
 
 		var isHost = player.equals(status.getGame().getHost());
 		return GameStateDTO.builder() //
