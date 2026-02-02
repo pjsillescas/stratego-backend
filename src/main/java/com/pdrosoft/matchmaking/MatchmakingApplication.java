@@ -23,17 +23,17 @@ public class MatchmakingApplication {
 
 	@Bean
 	public WebMvcConfigurer corsConfigurer() {
-	    return new WebMvcConfigurer() {
-	        @Override
-	        public void addCorsMappings(CorsRegistry registry) {
-	            registry.addMapping("/**")
-	                .allowedOrigins("*")
-	                .allowedMethods("*")
-	                .allowedHeaders("*");
-	        }
-	    };
+		return new WebMvcConfigurer() {
+			@Override
+			public void addCorsMappings(CorsRegistry registry) {
+				registry.addMapping("/**") //
+						.allowedOrigins("*") //
+						.allowedMethods("*") //
+						.allowedHeaders("*");
+			}
+		};
 	}
-	
+
 	public static void main(String[] args) {
 		SpringApplication.run(MatchmakingApplication.class, args);
 	}
