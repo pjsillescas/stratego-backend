@@ -26,14 +26,20 @@ public class MatchmakingApplication {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
+				// registry.addMapping("/**") //
+				// .allowedOrigins("*") //
+				// .allowedMethods("*") //
+				// .allowedHeaders("*");
+
 				registry.addMapping("/**") //
 						.allowedOrigins("*") //
 						.allowedMethods("*") //
-						.allowedHeaders("*");
+						.allowedHeaders("Authorization", "Content-Type") //
+						.exposedHeaders("Authorization");
 			}
 		};
 	}
-
+	
 	public static void main(String[] args) {
 		SpringApplication.run(MatchmakingApplication.class, args);
 	}

@@ -35,21 +35,33 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
+		// Ignore options requests (preflights)
+		if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
 		final String authHeader = request.getHeader("Authorization");
 
-		if (authHeader != null && authHeader.startsWith("Bearer ") && !isSignupRequest(request)) {
-			String token = authHeader.substring(7);
-			if (jwtUtil.isTokenValid(token)) {
-				String username = jwtUtil.extractUsername(token);
-
-				// var user = new User(username, "", Collections.emptyList());
-				var user = matchmakingUserDetailsService.loadUserByUsername(username);
-				var auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-				auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-				SecurityContextHolder.getContext().setAuthentication(auth);
-			}
+		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+			filterChain.doFilter(request, response);
+			return;
 		}
+
+		// if (authHeader != null && authHeader.startsWith("Bearer ") &&
+		// !isSignupRequest(request)) {
+		String token = authHeader.substring(7);
+		if (jwtUtil.isTokenValid(token)) {
+			String username = jwtUtil.extractUsername(token);
+
+			// var user = new User(username, "", Collections.emptyList());
+			var user = matchmakingUserDetailsService.loadUserByUsername(username);
+			var auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+			auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+			SecurityContextHolder.getContext().setAuthentication(auth);
+		}
+		// }
 
 		filterChain.doFilter(request, response);
 	}
