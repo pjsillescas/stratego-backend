@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pdrosoft.matchmaking.dao.GameDAO;
-import com.pdrosoft.matchmaking.dao.PlayerDAO;
 import com.pdrosoft.matchmaking.dto.GameDTO;
 import com.pdrosoft.matchmaking.dto.GameExtendedDTO;
 import com.pdrosoft.matchmaking.dto.GameInputDTO;
@@ -31,8 +30,6 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 	@NonNull
 	private final PlayerRepository playerRepository;
 	@NonNull
-	private final PlayerDAO playerDao;
-	@NonNull
 	private final PasswordEncoder passwordEncoder;
 
 	@Override
@@ -49,7 +46,7 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public PlayerDTO addPlayer(String name, String password) {
-		var playerOpt = playerDao.findPlayersByName(name);
+		var playerOpt = playerRepository.findPlayersByName(name);
 
 		if (playerOpt.isPresent()) {
 			throw new PlayerExistsException("player already exists '%s'".formatted(name));

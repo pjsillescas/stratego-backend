@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pdrosoft.matchmaking.dao.GameDAO;
-import com.pdrosoft.matchmaking.dao.PlayerDAO;
 import com.pdrosoft.matchmaking.dto.PlayerDTO;
 import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.model.Game;
@@ -43,8 +42,6 @@ public class StrategoServiceImpl implements StrategoService {
 	private final GameRepository gameRepository;
 	@NonNull
 	private final PlayerRepository playerRepository;
-	@NonNull
-	private final PlayerDAO playerDao;
 	@NonNull
 	private final PasswordEncoder passwordEncoder;
 	@NonNull

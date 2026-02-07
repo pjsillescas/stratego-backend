@@ -9,8 +9,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pdrosoft.matchmaking.dao.PlayerDAO;
 import com.pdrosoft.matchmaking.model.Player;
+import com.pdrosoft.matchmaking.repository.PlayerRepository;
 import com.pdrosoft.matchmaking.security.payload.MatchmakingUserDetails;
 
 import lombok.NonNull;
@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class MatchmakingUserDetailsServiceImpl implements MatchmakingUserDetailsService {
 
 	@NonNull
-	private final PlayerDAO playerDao;
+	private final PlayerRepository playerRepository;
 
 	private UserDetails toUserDetails(Player player) {
 		return MatchmakingUserDetails.builder().userName(player.getUserName()) //
@@ -35,7 +35,7 @@ public class MatchmakingUserDetailsServiceImpl implements MatchmakingUserDetails
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		return playerDao.findPlayersByName(username).map(this::toUserDetails)
+		return playerRepository.findPlayersByName(username).map(this::toUserDetails)
 				.orElseThrow(() -> new UsernameNotFoundException("Not found user '%s'".formatted(username)));
 	}
 

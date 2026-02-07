@@ -27,7 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.pdrosoft.matchmaking.dao.GameDAO;
-import com.pdrosoft.matchmaking.dao.PlayerDAO;
 import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.model.Game;
 import com.pdrosoft.matchmaking.model.Player;
@@ -58,8 +57,6 @@ public class StrategoServiceTest {
 	private GameRepository gameRepository;
 	@Mock
 	private PlayerRepository playerRepository;
-	@Mock
-	private PlayerDAO playerDao;
 	@Mock
 	private PasswordEncoder passwordEncoder;
 	@Mock

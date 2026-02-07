@@ -20,16 +20,12 @@ import com.pdrosoft.matchmaking.model.Player;
 import com.pdrosoft.matchmaking.repository.GameRepository;
 import com.pdrosoft.matchmaking.stratego.enums.GamePhase;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(onConstructor_ = { @Autowired })
 @Service
 public class GameDAOImpl implements GameDAO {
-	@PersistenceContext
-	private EntityManager em;
 
 	@NonNull
 	private final GameRepository gameRepository;
@@ -77,18 +73,7 @@ public class GameDAOImpl implements GameDAO {
 	@Override
 	@Transactional(readOnly = true)
 	public List<GameDTO> getGameList(Instant dateFrom) {
-		var cb = em.getCriteriaBuilder();
-		var cq = cb.createQuery(Game.class);
-		var root = cq.from(Game.class);
-
-		System.out.println("dateFrom '%s'".formatted(dateFrom));
-		// cq.select(root).where(cb.isTrue(cb.literal(true)));
-		cq.select(root).where(cb.and(//
-				cb.isNull(root.get("guest")), //
-				cb.greaterThan(root.get("creationDate"), dateFrom) //
-		)).orderBy(cb.desc(root.get("creationDate")));
-
-		return em.createQuery(cq).getResultStream().map(this::toGameDTO).toList();
+		return gameRepository.getGameList(dateFrom).stream().map(this::toGameDTO).toList();
 	}
 
 	private String getDefaultGameDescription(Player host) {
