@@ -317,15 +317,12 @@ public class StrategoServiceImpl implements StrategoService {
 	@Override
 	@Transactional(readOnly = true)
 	public GameStateDTO getStatus(Long gameId, Player player) {
-		System.out.println((player == null) ? "player IS null" : "valid player");
 		var game = gameRepository.findById(gameId)
 				.orElseThrow(() -> new MatchmakingValidationException("Game does not exist"));
-		System.out.println("get game " + game.getId());
 
 		List<List<BoardTileDTO>> board = null;
 		var status = strategoStatusRepository.findByGameId(gameId)
 				.orElseThrow(() -> new MatchmakingValidationException("Game has not been started"));
-		System.out.println("get status" + status.getId());
 
 		board = status.getBoard();
 
@@ -333,10 +330,8 @@ public class StrategoServiceImpl implements StrategoService {
 		var allMovements = strategoMovementRepository.findAllByGameId(gameId);
 		var movement = Optional
 				.ofNullable((allMovements == null || allMovements.size() == 0) ? null : allMovements.getLast());
-		System.out.println("get movements");
 
 		var isHost = player.equals(status.getGame().getHost());
-		System.out.println("ishost: " + isHost);
 		var statusdto = GameStateDTO.builder() //
 				.currentPlayer(toPlayerDTO(player)) //
 				.hostPlayerId(Optional.ofNullable(game.getHost()).map(Player::getId).orElse(0)) //
@@ -347,7 +342,6 @@ public class StrategoServiceImpl implements StrategoService {
 				.board(board) //
 				.isMyTurn(isHost && !status.getIsGuestTurn() || !isHost && status.getIsGuestTurn()) //
 				.build();
-		System.out.println("dto");
 		return statusdto;
 	}
 

@@ -674,4 +674,137 @@ public class StrategoServiceTest {
 		return player;
 	}
 
+	private List<List<BoardTileDTO>> getBoard(BoardTileDTO playerTile, int row, int col) {
+		var tile = new BoardTileDTO(Rank.DISABLED, true);
+
+		var row0 = new BoardTileDTO[] { null, null, null, null, null, null, null, null, null, null };
+		var row1 = new BoardTileDTO[] { null, null, null, null, null, null, null, null, null, null };
+		var row2 = new BoardTileDTO[] { null, null, null, null, null, null, null, null, null, null };
+		var row3 = new BoardTileDTO[] { null, null, null, null, null, null, null, null, null, null };
+		var row4 = new BoardTileDTO[] { null, null, tile, tile, null, null, tile, tile, null, null };
+		var row5 = new BoardTileDTO[] { null, null, tile, tile, null, null, tile, tile, null, null };
+		var row6 = new BoardTileDTO[] { null, null, null, null, null, null, null, null, null, null };
+		var row7 = new BoardTileDTO[] { null, null, null, null, null, null, null, null, null, null };
+		var row8 = new BoardTileDTO[] { null, null, null, null, null, null, null, null, null, null };
+		var row9 = new BoardTileDTO[] { null, null, null, null, null, null, null, null, null, null };
+
+		var finalRow = switch (row) {
+		case 0 -> row0;
+		case 1 -> row1;
+		case 2 -> row2;
+		case 3 -> row3;
+		case 4 -> row4;
+		case 5 -> row5;
+		case 6 -> row6;
+		case 7 -> row7;
+		case 8 -> row8;
+		case 9 -> row9;
+		default -> row0;
+		};
+
+		finalRow[col] = playerTile;
+
+		List<List<BoardTileDTO>> board = List.of(//
+				Arrays.asList(row0), //
+				Arrays.asList(row1), //
+				Arrays.asList(row2), //
+				Arrays.asList(row3), //
+				Arrays.asList(row4), //
+				Arrays.asList(row5), //
+				Arrays.asList(row6), //
+				Arrays.asList(row7), //
+				Arrays.asList(row8), //
+				Arrays.asList(row9) //
+		);
+
+		return board;
+
+	}
+
+	private boolean isDisabledSquare(int row, int col) {
+		return (4 <= row && row <= 5) && (2 <= col && col <= 3 || 6 <= col && col <= 7);
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = { //
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, //
+			10, 11, 12, 13, 14, 15, 16, 17, 18, 19, //
+			20, 21, 22, 23, 24, 25, 26, 27, 28, 29, //
+			30, 31, 32, 33, 34, 35, 36, 37, 38, 39, //
+			40, 41, 42, 43, 44, 45, 46, 47, 48, 49, //
+			50, 51, 52, 53, 54, 55, 56, 57, 58, 59, //
+			60, 61, 62, 63, 64, 65, 66, 67, 68, 69, //
+			70, 71, 72, 73, 74, 75, 76, 77, 78, 79, //
+			80, 81, 82, 83, 84, 85, 86, 87, 88, 89, //
+			90, 91, 92, 93, 94, 95, 96, 97, 98, 99 //
+	})
+	void testAddMovementAllSquares(int squareId) {
+		var row = squareId / 10;
+		var col = squareId % 10;
+
+		if (!isDisabledSquare(row, col)) {
+			for (var direction = 0; direction < 4; direction++) {
+				int rowTarget = -1;
+				int colTarget = -1;
+
+				switch (direction) {
+				case 0:
+					rowTarget = row - 1;
+					colTarget = col;
+					break;
+				case 1:
+					rowTarget = row + 1;
+					colTarget = col;
+					break;
+				case 2:
+					rowTarget = row;
+					colTarget = col - 1;
+					break;
+				case 3:
+				default:
+					rowTarget = row;
+					colTarget = col + 1;
+					break;
+				}
+
+				if (0 <= rowTarget && rowTarget < 10 && 0 <= colTarget && colTarget < 10
+						&& !isDisabledSquare(rowTarget, colTarget)) {
+
+					Mockito.reset(gameRepository, strategoStatusRepository, strategoMovementRepository);
+
+					var host = getTestPlayer(HOST_ID);
+					var guest = getTestPlayer(GUEST_ID);
+					var game = getTestGame(host, guest);
+					Mockito.when(gameRepository.findById(GAME_ID)).thenReturn(Optional.of(game));
+
+					var playerTile = new BoardTileDTO(Rank.MARSHAL, false);
+					var board = getBoard(playerTile, row, col);
+
+					Mockito.when(strategoStatusRepository.findByGameId(GAME_ID))
+							.thenReturn(Optional.of(getTestStatus(board, game)));
+
+					var movement = StrategoMovementDTO.builder() //
+							.rank(Rank.MARSHAL) //
+							.rowInitial(row) //
+							.colInitial(col) //
+							.rowFinal(rowTarget) //
+							.colFinal(colTarget) //
+							.build();
+
+					strategoService.addMovement(GAME_ID, guest, movement);
+
+					var captor = ArgumentCaptor.forClass(StrategoStatus.class);
+					Mockito.verify(strategoStatusRepository).save(captor.capture());
+					StrategoStatus status = captor.getValue();
+					assertThat(status.getIsGuestTurn()).isFalse();
+
+					var captorMove = ArgumentCaptor.forClass(StrategoMovement.class);
+					Mockito.verify(strategoMovementRepository).save(captorMove.capture());
+					assertThat(captorMove.getValue().getRowFinal()).isEqualTo(rowTarget);
+					assertThat(captorMove.getValue().getColFinal()).isEqualTo(colTarget);
+					assertThat(captorMove.getValue().getIsGuestTurn()).isTrue();
+				}
+			}
+		}
+	}
 }
