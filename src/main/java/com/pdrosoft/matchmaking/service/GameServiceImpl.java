@@ -1,4 +1,4 @@
-package com.pdrosoft.matchmaking.dao;
+package com.pdrosoft.matchmaking.service;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(onConstructor_ = { @Autowired })
 @Service
-public class GameDAOImpl implements GameDAO {
+public class GameServiceImpl implements GameService {
 
 	@NonNull
 	private final GameRepository gameRepository;
@@ -116,10 +116,8 @@ public class GameDAOImpl implements GameDAO {
 	@Override
 	@Transactional(readOnly = true)
 	public GameExtendedDTO getGame(Player guest, Long gameId) {
-		var game = loadGame(gameId)
+		return loadGame(gameId).map(this::toGameExtendedDTO)
 				.orElseThrow(() -> new NotFoundException("Game %d does not exist".formatted(gameId)));
-
-		return toGameExtendedDTO(game);
 	}
 
 	@Override

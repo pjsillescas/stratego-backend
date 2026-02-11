@@ -10,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pdrosoft.matchmaking.dao.GameDAO;
 import com.pdrosoft.matchmaking.dto.PlayerDTO;
 import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.model.Game;
@@ -18,7 +17,6 @@ import com.pdrosoft.matchmaking.model.Player;
 import com.pdrosoft.matchmaking.model.StrategoMovement;
 import com.pdrosoft.matchmaking.model.StrategoStatus;
 import com.pdrosoft.matchmaking.repository.GameRepository;
-import com.pdrosoft.matchmaking.repository.PlayerRepository;
 import com.pdrosoft.matchmaking.repository.StrategoMovementRepository;
 import com.pdrosoft.matchmaking.repository.StrategoStatusRepository;
 import com.pdrosoft.matchmaking.stratego.dto.ArmySetupDTO;
@@ -37,11 +35,7 @@ import lombok.RequiredArgsConstructor;
 public class StrategoServiceImpl implements StrategoService {
 
 	@NonNull
-	private final GameDAO gameDao;
-	@NonNull
 	private final GameRepository gameRepository;
-	@NonNull
-	private final PlayerRepository playerRepository;
 	@NonNull
 	private final PasswordEncoder passwordEncoder;
 	@NonNull

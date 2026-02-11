@@ -9,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pdrosoft.matchmaking.dao.GameDAO;
 import com.pdrosoft.matchmaking.dto.GameDTO;
 import com.pdrosoft.matchmaking.dto.GameExtendedDTO;
 import com.pdrosoft.matchmaking.dto.GameInputDTO;
@@ -26,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class MatchmakingServiceImpl implements MatchmakingService {
 
 	@NonNull
-	private final GameDAO gameDao;
+	private final GameService gameService;
 	@NonNull
 	private final PlayerRepository playerRepository;
 	@NonNull
@@ -35,7 +34,7 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<GameDTO> getGameList(Instant dateFrom) {
-		return gameDao.getGameList(dateFrom);
+		return gameService.getGameList(dateFrom);
 	}
 
 	private PlayerDTO toPlayerDTO(Player player) {
@@ -62,25 +61,24 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public GameDTO addGame(Player host, GameInputDTO gameInputDto) {
-		return gameDao.addGame(host, gameInputDto);
+		return gameService.addGame(host, gameInputDto);
 	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public GameExtendedDTO joinGame(Player guest, Long gameId) {
-		return gameDao.joinGame(guest, gameId);
+		return gameService.joinGame(guest, gameId);
 	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public GameDTO leaveGame(Player player, Long gameId) {
-		return gameDao.leaveGame(player, gameId);
+		return gameService.leaveGame(player, gameId);
 	}
 
 	@Override
 	public GameExtendedDTO getGame(Player player, Long gameId) {
-		// TODO Auto-generated method stub
-		return gameDao.getGame(player, gameId);
+		return gameService.getGame(player, gameId);
 	}
 
 }
