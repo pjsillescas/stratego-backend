@@ -27,20 +27,23 @@ public class StrategoMovement {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "game_id", nullable = false)
 	private Game game;
-	
+
 	@Column(name = "is_guest_turn", nullable = false)
 	private Boolean isGuestTurn;
 
-	@Column(name = "rank_", nullable=false)
+	@Column(name = "rank_", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private Rank rank;
-	@Column(name = "row_initial", nullable=false)
+	@Column(name = "row_initial", nullable = false)
 	private int rowInitial;
-	@Column(name = "col_initial", nullable=false)
+	@Column(name = "col_initial", nullable = false)
 	private int colInitial;
-	@Column(name = "row_final", nullable=false)
+	@Column(name = "row_final", nullable = false)
 	private int rowFinal;
-	@Column(name = "col_final", nullable=false)
+	@Column(name = "col_final", nullable = false)
 	private int colFinal;
+
+	@Column(name = "result")
+	private String result;
 
 }

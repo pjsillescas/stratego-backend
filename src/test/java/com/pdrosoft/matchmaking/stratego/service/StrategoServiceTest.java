@@ -26,6 +26,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.model.Game;
 import com.pdrosoft.matchmaking.model.Player;
@@ -38,6 +42,7 @@ import com.pdrosoft.matchmaking.repository.StrategoStatusRepository;
 import com.pdrosoft.matchmaking.stratego.dto.ArmySetupDTO;
 import com.pdrosoft.matchmaking.stratego.dto.BoardTileDTO;
 import com.pdrosoft.matchmaking.stratego.dto.StrategoMovementDTO;
+import com.pdrosoft.matchmaking.stratego.dto.StrategoMovementResultDTO;
 import com.pdrosoft.matchmaking.stratego.enums.GamePhase;
 import com.pdrosoft.matchmaking.stratego.enums.Rank;
 
@@ -49,6 +54,8 @@ public class StrategoServiceTest {
 	private static final Integer HOST_ID = 2;
 	private static final Integer GUEST_ID = 3;
 	private static final Long GAME_ID = 10L;
+
+	private static final Integer STATUS_ID = 1;
 
 	@Mock
 	private GameRepository gameRepository;
@@ -62,6 +69,8 @@ public class StrategoServiceTest {
 	private StrategoMovementRepository strategoMovementRepository;
 	@Mock
 	private RankService rankService;
+	@Mock
+	private ObjectMapper mapper;
 
 	@InjectMocks
 	private StrategoServiceImpl strategoService;
@@ -99,10 +108,11 @@ public class StrategoServiceTest {
 	@SuppressWarnings("unchecked")
 	@ParameterizedTest
 	@ArgumentsSource(value = MovementArgs.class)
-	void testGetStatus(List<StrategoMovement> movements) {
+	void testGetStatus(List<StrategoMovement> movements) throws JsonMappingException, JsonProcessingException {
 		var player = getTestPlayer();
 		var guest = getTestPlayer(GUEST_ID);
 		var game = getTestGame(player, guest);
+		var result = StrategoMovementResultDTO.builder().rank(Rank.MARSHAL).isHost(true).build();
 
 		Mockito.when(gameRepository.findById(GAME_ID)).thenReturn(Optional.of(game));
 
@@ -113,6 +123,11 @@ public class StrategoServiceTest {
 		Mockito.when(status.getBoard()).thenReturn(board);
 
 		Mockito.when(strategoMovementRepository.findAllByGameId(GAME_ID)).thenReturn(movements);
+
+		if (movements.size() > 0) {
+			Mockito.when(mapper.readValue(Mockito.anyString(), Mockito.any(TypeReference.class)))
+					.thenReturn(List.of(result));
+		}
 
 		var statusDto = strategoService.getStatus(GAME_ID, player);
 
@@ -134,6 +149,11 @@ public class StrategoServiceTest {
 			assertThat(movement.getColInitial()).isEqualTo(2);
 			assertThat(movement.getRowFinal()).isEqualTo(3);
 			assertThat(movement.getColFinal()).isEqualTo(4);
+			assertThat(movement.getResult()).hasSize(1).contains(result);
+
+			var captor = ArgumentCaptor.forClass(String.class);
+			Mockito.verify(mapper).readValue(captor.capture(), Mockito.any(TypeReference.class));
+			assertThat(captor.getValue()).isEqualTo("[{\"rank\":\"MARSHAL\",\"isHost\":true}]");
 		}
 	}
 
@@ -176,8 +196,6 @@ public class StrategoServiceTest {
 		assertThatThrownBy(() -> strategoService.addMovement(GAME_ID, player, movementDto))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Game has not been started");
 	}
-
-	private static final Integer STATUS_ID = 1;
 
 	private StrategoStatus getTestStatus(List<List<BoardTileDTO>> board, Game game) {
 		var status = new StrategoStatus();
@@ -302,9 +320,10 @@ public class StrategoServiceTest {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@ParameterizedTest
 	@ArgumentsSource(value = AddMovementRanksArguments.class)
-	void testAddMovement(Rank initialRank, Rank destinationRank, Rank finalRank) {
+	void testAddMovement(Rank initialRank, Rank destinationRank, Rank finalRank) throws JsonProcessingException {
 		var player = getTestPlayer();
 		var guest = getTestPlayer(GUEST_ID);
 
@@ -326,6 +345,7 @@ public class StrategoServiceTest {
 
 		Mockito.when(gameRepository.findById(GAME_ID)).thenReturn(Optional.of(game));
 		Mockito.when(strategoStatusRepository.findByGameId(GAME_ID)).thenReturn(Optional.of(status));
+		List<StrategoMovementResultDTO> result = List.of();
 		if (destinationRank != null) {
 			Mockito.when(rankService.compareRanks(initialRank, destinationRank)).thenAnswer(inv -> {
 				Rank initRank = inv.getArgument(0);
@@ -341,6 +361,19 @@ public class StrategoServiceTest {
 					return 0;
 				}
 			});
+
+			if (Rank.MARSHAL.equals(initialRank) && Rank.MARSHAL.equals(destinationRank)) {
+				result = List.of(StrategoMovementResultDTO.builder().rank(Rank.MARSHAL).isHost(true).build(),
+						StrategoMovementResultDTO.builder().rank(Rank.MARSHAL).isHost(false).build());
+			} else if (Rank.MARSHAL.equals(initialRank) && Rank.GENERAL.equals(destinationRank)) {
+				result = List.of(StrategoMovementResultDTO.builder().rank(Rank.GENERAL).isHost(false).build());
+			} else if (Rank.SCOUT.equals(initialRank) && Rank.MARSHAL.equals(destinationRank)) {
+				result = List.of(StrategoMovementResultDTO.builder().rank(Rank.SCOUT).isHost(true).build());
+			} else {
+				result = List.of();
+			}
+
+			Mockito.when(mapper.writeValueAsString(result)).thenReturn("json");
 		}
 
 		strategoService.addMovement(GAME_ID, player, movementDto);
@@ -361,6 +394,11 @@ public class StrategoServiceTest {
 				assertThat(dest.getRank()).isEqualTo(finalRank);
 			}
 		});
+
+		var resultCaptor = ArgumentCaptor.forClass(List.class);
+
+		Mockito.verify(mapper).writeValueAsString(resultCaptor.capture());
+		assertThat(resultCaptor.getValue()).isEqualTo(result);
 	}
 
 	private ArmySetupDTO getValidSetup() {
@@ -637,6 +675,7 @@ public class StrategoServiceTest {
 		movement.setColInitial(2);
 		movement.setRowFinal(3);
 		movement.setColFinal(4);
+		movement.setResult("[{\"rank\":\"MARSHAL\",\"isHost\":true}]");
 		return movement;
 	}
 

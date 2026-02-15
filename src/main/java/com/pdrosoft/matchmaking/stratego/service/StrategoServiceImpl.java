@@ -10,6 +10,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pdrosoft.matchmaking.dto.PlayerDTO;
 import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.model.Game;
@@ -23,6 +26,7 @@ import com.pdrosoft.matchmaking.stratego.dto.ArmySetupDTO;
 import com.pdrosoft.matchmaking.stratego.dto.BoardTileDTO;
 import com.pdrosoft.matchmaking.stratego.dto.GameStateDTO;
 import com.pdrosoft.matchmaking.stratego.dto.StrategoMovementDTO;
+import com.pdrosoft.matchmaking.stratego.dto.StrategoMovementResultDTO;
 import com.pdrosoft.matchmaking.stratego.enums.GamePhase;
 import com.pdrosoft.matchmaking.stratego.enums.Rank;
 
@@ -44,6 +48,8 @@ public class StrategoServiceImpl implements StrategoService {
 	private final StrategoMovementRepository strategoMovementRepository;
 	@NonNull
 	private final RankService rankService;
+	@NonNull
+	private final ObjectMapper mapper;
 
 	private PlayerDTO toPlayerDTO(Player player) {
 		return PlayerDTO.builder().id(player.getId()).username(player.getUserName()).build();
@@ -216,7 +222,8 @@ public class StrategoServiceImpl implements StrategoService {
 		}
 	}
 
-	private void applyMovement(StrategoMovementDTO movementDto, List<List<BoardTileDTO>> board) {
+	private List<StrategoMovementResultDTO> applyMovement(StrategoMovementDTO movementDto,
+			List<List<BoardTileDTO>> board) {
 		var initialTile = board.get(movementDto.getRowInitial()).get(movementDto.getColInitial());
 		var finalTile = board.get(movementDto.getRowFinal()).get(movementDto.getColFinal());
 		if (finalTile != null) {
@@ -225,20 +232,40 @@ public class StrategoServiceImpl implements StrategoService {
 			if (result < 0) {
 				// player lost, destination tile stays
 				setBoardPosition(board, movementDto.getRowInitial(), movementDto.getColInitial(), null);
-				;
+				return List.of(StrategoMovementResultDTO.builder() //
+						.rank(initialTile.getRank()) //
+						.isHost(initialTile.isHostOwner()) //
+						.build());
 			} else if (result == 0) {
 				// Tie, both squares are deleted
 				setBoardPosition(board, movementDto.getRowInitial(), movementDto.getColInitial(), null);
 				setBoardPosition(board, movementDto.getRowFinal(), movementDto.getColFinal(), null);
+				return List.of(//
+						StrategoMovementResultDTO.builder() //
+								.rank(initialTile.getRank()) //
+								.isHost(initialTile.isHostOwner()) //
+								.build(), //
+						StrategoMovementResultDTO.builder() //
+								.rank(finalTile.getRank()) //
+								.isHost(finalTile.isHostOwner()) //
+								.build() //
+				);
 			} else { // result > 0
 				// player won
 				setBoardPosition(board, movementDto.getRowInitial(), movementDto.getColInitial(), null);
 				setBoardPosition(board, movementDto.getRowFinal(), movementDto.getColFinal(), initialTile);
+
+				return List.of(StrategoMovementResultDTO.builder() //
+						.rank(finalTile.getRank()) //
+						.isHost(finalTile.isHostOwner()) //
+						.build());
 			}
 		} else {
 			// empty final tile, move directly
 			setBoardPosition(board, movementDto.getRowInitial(), movementDto.getColInitial(), null);
 			setBoardPosition(board, movementDto.getRowFinal(), movementDto.getColFinal(), initialTile);
+
+			return List.of();
 		}
 	}
 
@@ -268,12 +295,19 @@ public class StrategoServiceImpl implements StrategoService {
 		checkValidMovement(movementDto, game, status, player.getId());
 
 		var board = status.getBoard();
-		applyMovement(movementDto, board);
+		var movementResult = applyMovement(movementDto, board);
 		status.setBoard(board);
 
 		var isGuestTurn = status.getIsGuestTurn();
 		status.setIsGuestTurn(!isGuestTurn);
 		strategoStatusRepository.save(status);
+
+		String resultString;
+		try {
+			resultString = mapper.writeValueAsString(movementResult);
+		} catch (JsonProcessingException e) {
+			resultString = "";
+		}
 
 		var move = new StrategoMovement();
 		move.setGame(game);
@@ -283,6 +317,7 @@ public class StrategoServiceImpl implements StrategoService {
 		move.setRowFinal(movementDto.getRowFinal());
 		move.setColFinal(movementDto.getColFinal());
 		move.setIsGuestTurn(isGuestTurn);
+		move.setResult(resultString);
 
 		strategoMovementRepository.save(move);
 
@@ -292,10 +327,32 @@ public class StrategoServiceImpl implements StrategoService {
 				.guestPlayerId(Optional.ofNullable(game.getGuest()).map(Player::getId).orElse(0)) //
 				.gameId(gameId) //
 				.phase(game.getPhase()) //
-				.movement(movementDto) //
+				.movement(addMovementResult(movementDto, movementResult)) //
 				.board(board) //
 				.isMyTurn(false) //
 				.build();
+	}
+
+	private StrategoMovementDTO addMovementResult(StrategoMovementDTO movementDto,
+			List<StrategoMovementResultDTO> result) {
+		return StrategoMovementDTO.builder().rank(movementDto.getRank()) //
+				.rowInitial(movementDto.getRowInitial()) //
+				.colInitial(movementDto.getColInitial()) //
+				.rowFinal(movementDto.getRowFinal()) //
+				.colFinal(movementDto.getColFinal()) //
+				.result(result) //
+				.build();
+	}
+
+	private List<StrategoMovementResultDTO> getMovementResult(StrategoMovement movement) {
+		return Optional.ofNullable(movement.getResult()).map(str -> {
+			try {
+				return mapper.readValue(str, new TypeReference<List<StrategoMovementResultDTO>>() {
+				});
+			} catch (JsonProcessingException e) {
+				return null;
+			}
+		}).orElse(List.of());
 	}
 
 	private StrategoMovementDTO toMovementDTO(StrategoMovement movement) {
@@ -305,6 +362,7 @@ public class StrategoServiceImpl implements StrategoService {
 				.rowFinal(movement.getRowFinal()) //
 				.colInitial(movement.getColInitial()) //
 				.colFinal(movement.getColFinal()) //
+				.result(getMovementResult(movement)) //
 				.build();
 	}
 

@@ -1,5 +1,7 @@
 package com.pdrosoft.matchmaking.stratego.dto;
 
+import java.util.List;
+
 import com.pdrosoft.matchmaking.stratego.enums.Rank;
 
 import jakarta.validation.constraints.Max;
@@ -36,4 +38,6 @@ public class StrategoMovementDTO {
 	@Min(0)
 	@Max(9)
 	private int colFinal;
+	
+	private List<StrategoMovementResultDTO> result;
 }
