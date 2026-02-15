@@ -53,6 +53,8 @@ CREATE TABLE `stratego_movement` (
 	col_initial INTEGER NOT NULL,
 	row_final INTEGER NOT NULL,
 	col_final INTEGER NOT NULL,
+	
+	result TEXT DEFAULT NULL,
 
 	CONSTRAINT movement_pk PRIMARY KEY(`id`),
 	CONSTRAINT movement_game_fk FOREIGN KEY(`game_id`) REFERENCES `game`(`id`)
