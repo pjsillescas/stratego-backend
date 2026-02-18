@@ -30,16 +30,6 @@ public class GameServiceImpl implements GameService {
 	@NonNull
 	private final GameRepository gameRepository;
 
-	@Override
-	public void createGameWithCreator(Player host, String gameName) {
-		var game = new Game();
-		game.setName(gameName);
-		game.setHost(host);
-		game.setCreationDate(Instant.now());
-
-		gameRepository.save(game); // Cascade saves everything
-	}
-
 	private PlayerDTO toPlayerDTO(Player player) {
 		return Optional.ofNullable(player).map(x -> PlayerDTO.builder() //
 				.id(player.getId()) //
@@ -142,12 +132,7 @@ public class GameServiceImpl implements GameService {
 			}
 
 			throw new MatchmakingValidationException(
-					"Player %d is not a member of the game %s".formatted(player.getUserName(), game.getName()));
+					"Player %s is not a member of the game %s".formatted(player.getUserName(), game.getName()));
 		}).orElse(null);
-	}
-
-	@Override
-	public GameDTO getGameById(Long gameId) {
-		return loadGame(gameId).map(this::toGameDTO).orElse(null);
 	}
 }

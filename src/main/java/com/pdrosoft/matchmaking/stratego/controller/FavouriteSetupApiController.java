@@ -19,36 +19,40 @@ import com.pdrosoft.matchmaking.stratego.service.FavouriteSetupService;
 
 import jakarta.validation.Valid;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/stratego/favourite/setup")
+@RequestMapping("/api/stratego/favourite")
+@RequiredArgsConstructor(onConstructor_ = { @Autowired })
 public class FavouriteSetupApiController {
 
 	@NonNull
 	private final FavouriteSetupService favouriteSetupService;
 
-	public FavouriteSetupApiController(@Autowired FavouriteSetupService favouriteSetupService) {
-		this.favouriteSetupService = favouriteSetupService;
-	}
-
-	@GetMapping(path = "/", produces = { "application/json" })
+	@GetMapping(path = "/setup", produces = { "application/json" })
 	public List<FavouriteSetupDTO> getFavouriteSetupList(@AuthenticationPrincipal MatchmakingUserDetails userDetails) {
 		return favouriteSetupService.getSetupList(userDetails.getPlayer());
 	}
 
-	@PutMapping(path = "/", produces = { "application/json" })
+	@GetMapping(path = "/setup/{setupId:[0-9]+}", produces = { "application/json" })
+	public Optional<FavouriteSetupDTO> getFavouriteSetup(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
+			@PathVariable("setupId") Integer setupId) {
+		return favouriteSetupService.getSetup(setupId, userDetails.getPlayer());
+	}
+
+	@PutMapping(path = "/setup", produces = { "application/json" })
 	public Optional<FavouriteSetupDTO> addFavouriteSetup(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
 			@RequestBody @Valid FavouriteSetupDTO favouriteSetupDto) {
 		return favouriteSetupService.addSetup(favouriteSetupDto, userDetails.getPlayer());
 	}
 
-	@PutMapping(path = "/{setupId:[0-9]+}", produces = { "application/json" })
+	@PutMapping(path = "/setup/{setupId:[0-9]+}", produces = { "application/json" })
 	public Optional<FavouriteSetupDTO> updateFavouriteSetup(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
 			@PathVariable("setupId") Integer setupId, @Valid @RequestBody FavouriteSetupDTO favouriteSetupDto) {
 		return favouriteSetupService.updateSetup(setupId, favouriteSetupDto, userDetails.getPlayer());
 	}
 
-	@DeleteMapping(path = "/{setupId:[0-9]+}", produces = { "application/json" })
+	@DeleteMapping(path = "/setup/{setupId:[0-9]+}", produces = { "application/json" })
 	public Optional<FavouriteSetupDTO> deleteFavouriteSetup(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
 			@PathVariable("setupId") Integer setupId) {
 		return favouriteSetupService.deleteSetup(setupId, userDetails.getPlayer());

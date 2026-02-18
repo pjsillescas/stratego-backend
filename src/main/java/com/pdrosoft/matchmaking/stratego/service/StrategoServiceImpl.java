@@ -132,19 +132,15 @@ public class StrategoServiceImpl implements StrategoService {
 
 		var game = gameRepository.findById(gameId)
 				.orElseThrow(() -> new MatchmakingValidationException("Game does not exist"));
-		System.out.println("find game " + game.getId());
 
 		var setupPhases = List.of(GamePhase.WAITING_FOR_SETUP_1_PLAYER, GamePhase.WAITING_FOR_SETUP_2_PLAYERS);
 
 		if (game.getPhase() != null && !setupPhases.contains(game.getPhase())) {
-			System.out.println("game not in setup state");
-
 			throw new MatchmakingValidationException("Game not in setup state");
 		}
 
 		List<List<BoardTileDTO>> board = null;
 		var status = strategoStatusRepository.findByGameId(gameId).orElseGet(() -> getNewStrategoGame(game));
-		System.out.println("find status " + status.getId());
 
 		board = status.getBoard();
 
@@ -158,8 +154,6 @@ public class StrategoServiceImpl implements StrategoService {
 			status.setIsGuestInitialized(true);
 			copySetupGuest(setupDto, board);
 		} else {
-			System.out.println("invalid player setup");
-
 			throw new MatchmakingValidationException("Invalid player setup");
 		}
 
@@ -171,13 +165,9 @@ public class StrategoServiceImpl implements StrategoService {
 			game.setPhase(GamePhase.WAITING_FOR_SETUP_1_PLAYER);
 		}
 
-		System.out.println("setting phase " + game.getPhase());
-
 		gameRepository.save(game);
-		System.out.println("save game");
 
 		strategoStatusRepository.save(status);
-		System.out.println("save status");
 		return GameStateDTO.builder() //
 				.currentPlayer(toPlayerDTO(player)) //
 				.hostPlayerId(Optional.ofNullable(game.getHost()).map(Player::getId).orElse(0)) //

@@ -58,7 +58,7 @@ public class FavouriteSetupServiceImpl implements FavouriteSetupService {
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public Optional<FavouriteSetupDTO> deleteSetup(Integer setupId, Player player) {
-		var setupOpt = favouriteSetupRepository.findById(setupId);
+		var setupOpt = favouriteSetupRepository.findById(setupId, player);
 		if (setupOpt.isPresent()) {
 			var setup = setupOpt.get();
 			var setupDto = parse(setup);
@@ -73,6 +73,12 @@ public class FavouriteSetupServiceImpl implements FavouriteSetupService {
 	@Transactional(readOnly = true)
 	public List<FavouriteSetupDTO> getSetupList(Player player) {
 		return favouriteSetupRepository.getSetupList(player).stream().map(this::parse).toList();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<FavouriteSetupDTO> getSetup(Integer id, Player player) {
+		return favouriteSetupRepository.findById(id, player).map(this::parse);
 	}
 
 	private void updateEntity(FavouriteSetupDTO favouriteSetupDto, FavouriteSetup setup, Player owner) {

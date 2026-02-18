@@ -61,11 +61,10 @@ public class RankServiceImpl implements RankService {
 					Rank.SERGEANT, Rank.MINER);
 			break;
 		case SPY:
+		default:
 			upperRanks = List.of(Rank.MARSHAL, Rank.GENERAL, Rank.COLONEL, Rank.MAJOR, Rank.CAPTAIN, Rank.LIEUTENANT,
 					Rank.SERGEANT, Rank.MINER, Rank.SCOUT);
 			break;
-		default:
-			throw new MatchmakingValidationException("Invalid ranks compared");
 		}
 
 		return upperRanks.contains(rankAttacker) ? 1 : -1;

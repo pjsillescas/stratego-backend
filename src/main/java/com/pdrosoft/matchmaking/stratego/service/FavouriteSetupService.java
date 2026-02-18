@@ -16,4 +16,6 @@ public interface FavouriteSetupService {
 
 	List<FavouriteSetupDTO> getSetupList(Player player);
 
+	Optional<FavouriteSetupDTO> getSetup(Integer id, Player player);
+
 }

@@ -8,10 +8,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import com.pdrosoft.matchmaking.model.Player;
 
 public interface PlayerRepository extends JpaRepository<Player, Long>, JpaSpecificationExecutor<Player> {
-	public default Optional<Player> findByPK(Long id) {
-		return this.findById(id);
-	}
-	
 	public default Optional<Player> findPlayersByName(String userName) {
 		return this.findOne((from, q, cb) -> cb.equal(from.get("userName"), userName));
 	}

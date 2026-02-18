@@ -1,7 +1,7 @@
 package com.pdrosoft.matchmaking.stratego.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,9 +17,9 @@ public class FavouriteSetupDTO {
 	@Positive
 	private Integer id;
 
-	@NotNull
+	@NotEmpty
 	private String description;
-	
+
 	@Valid
 	private ArmySetupDTO armySetupDTO;
 }
