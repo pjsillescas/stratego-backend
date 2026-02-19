@@ -60,6 +60,19 @@ CREATE TABLE `stratego_movement` (
 	CONSTRAINT movement_game_fk FOREIGN KEY(`game_id`) REFERENCES `game`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+DROP TABLE IF EXISTS `favourite_setup`;
+CREATE TABLE `favourite_setup`(
+	id INTEGER NOT NULL AUTO_INCREMENT,
+	owner INTEGER DEFAULT NULL,
+
+	description VARCHAR(256) NOT NULL,
+	
+
+	setup_json TEXT NOT NULL,
+	
+    CONSTRAINT favourite_setup_pk PRIMARY KEY(`id`),
+	CONSTRAINT favourite_setup_owner_fk FOREIGN KEY(`owner`) REFERENCES `player`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
