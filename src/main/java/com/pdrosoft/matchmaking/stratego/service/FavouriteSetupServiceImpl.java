@@ -15,6 +15,7 @@ import com.pdrosoft.matchmaking.model.Player;
 import com.pdrosoft.matchmaking.repository.FavouriteSetupRepository;
 import com.pdrosoft.matchmaking.stratego.dto.ArmySetupDTO;
 import com.pdrosoft.matchmaking.stratego.dto.FavouriteSetupDTO;
+import com.pdrosoft.matchmaking.stratego.dto.FavouriteSetupInputDTO;
 import com.pdrosoft.matchmaking.stratego.enums.Rank;
 
 import lombok.NonNull;
@@ -32,7 +33,7 @@ public class FavouriteSetupServiceImpl implements FavouriteSetupService {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public Optional<FavouriteSetupDTO> addSetup(FavouriteSetupDTO favouriteSetupDTO, Player player) {
+	public Optional<FavouriteSetupDTO> addSetup(FavouriteSetupInputDTO favouriteSetupDTO, Player player) {
 		var setup = new FavouriteSetup();
 		updateEntity(favouriteSetupDTO, setup, player);
 
@@ -41,7 +42,7 @@ public class FavouriteSetupServiceImpl implements FavouriteSetupService {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public Optional<FavouriteSetupDTO> updateSetup(Integer setupId, FavouriteSetupDTO favouriteSetupDto,
+	public Optional<FavouriteSetupDTO> updateSetup(Integer setupId, FavouriteSetupInputDTO favouriteSetupDto,
 			Player player) {
 		var setupOpt = favouriteSetupRepository.findById(setupId);
 
@@ -81,7 +82,7 @@ public class FavouriteSetupServiceImpl implements FavouriteSetupService {
 		return favouriteSetupRepository.findById(id, player).map(this::parse);
 	}
 
-	private void updateEntity(FavouriteSetupDTO favouriteSetupDto, FavouriteSetup setup, Player owner) {
+	private void updateEntity(FavouriteSetupInputDTO favouriteSetupDto, FavouriteSetup setup, Player owner) {
 		String json;
 
 		try {

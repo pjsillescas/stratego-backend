@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pdrosoft.matchmaking.security.payload.MatchmakingUserDetails;
 import com.pdrosoft.matchmaking.stratego.dto.FavouriteSetupDTO;
+import com.pdrosoft.matchmaking.stratego.dto.FavouriteSetupInputDTO;
 import com.pdrosoft.matchmaking.stratego.service.FavouriteSetupService;
 
 import jakarta.validation.Valid;
@@ -42,13 +43,13 @@ public class FavouriteSetupApiController {
 
 	@PutMapping(path = "/setup", produces = { "application/json" })
 	public Optional<FavouriteSetupDTO> addFavouriteSetup(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
-			@RequestBody @Valid FavouriteSetupDTO favouriteSetupDto) {
+			@RequestBody @Valid FavouriteSetupInputDTO favouriteSetupDto) {
 		return favouriteSetupService.addSetup(favouriteSetupDto, userDetails.getPlayer());
 	}
 
 	@PutMapping(path = "/setup/{setupId:[0-9]+}", produces = { "application/json" })
 	public Optional<FavouriteSetupDTO> updateFavouriteSetup(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
-			@PathVariable("setupId") Integer setupId, @Valid @RequestBody FavouriteSetupDTO favouriteSetupDto) {
+			@PathVariable("setupId") Integer setupId, @Valid @RequestBody FavouriteSetupInputDTO favouriteSetupDto) {
 		return favouriteSetupService.updateSetup(setupId, favouriteSetupDto, userDetails.getPlayer());
 	}
 
