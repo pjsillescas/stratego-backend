@@ -18,6 +18,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 		"com.pdrosoft.matchmaking.stratego.controller", //
 		"com.pdrosoft.matchmaking.stratego.service", //
 		"com.pdrosoft.matchmaking.stratego.dao", //
+		
+		"com.pdrosoft.matchmaking.swagger", //
 })
 public class MatchmakingApplication {
 

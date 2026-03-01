@@ -82,7 +82,10 @@ public class SecurityConfig {
 				// UsernamePasswordAuthenticationFilter.class);
 				.authorizeHttpRequests(auth -> auth //
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() //
-						.requestMatchers("/api/auth/**"/* , "/api/stratego/**", "/api/public/**" */).permitAll() //
+						.requestMatchers("/api/auth/**").permitAll() //
+						.requestMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**",
+								"/swagger-ui/*")
+						.permitAll() // Swagger
 						.anyRequest().authenticated() //
 				).addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -21,6 +21,12 @@ import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.security.JwtUtil;
 import com.pdrosoft.matchmaking.service.MatchmakingService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor(onConstructor_ = { @Autowired })
+@Tag(name = "API Authorization", description = "Authorization management endpoints")
 public class AuthController {
 
 	@NonNull
@@ -39,6 +46,12 @@ public class AuthController {
 	@NonNull
 	private final MatchmakingService matchmakingService;
 
+	@Operation(summary = "Player login", description = "Player login")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Player logged in successfully", content = @Content(schema = @Schema(implementation = UserAuthDTO.class))), //
+			@ApiResponse(responseCode = "400", description = "Invalid request data", content = @Content(schema = @Schema())), //
+			@ApiResponse(responseCode = "404", description = "invalid credentials", content = @Content(schema = @Schema())) //
+	})
 	@PutMapping("/login")
 	// @PostMapping("/login")
 	public LoginResultDTO login(@Valid @RequestBody UserAuthDTO request, Errors errors) {
@@ -57,6 +70,12 @@ public class AuthController {
 		}
 	}
 
+	@Operation(summary = "Player sign up", description = "Player sign up")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Player created successfully", content = @Content(schema = @Schema(implementation = PlayerDTO.class))), //
+			@ApiResponse(responseCode = "400", description = "Invalid request data", content = @Content(schema = @Schema())), //
+			@ApiResponse(responseCode = "404", description = "invalid credentials", content = @Content(schema = @Schema())) //
+	})
 	@PutMapping("/signup")
 	public PlayerDTO signup(@Valid @RequestBody UserAuthDTO request, Errors errors) {
 

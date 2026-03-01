@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.pdrosoft.matchmaking.dto.ErrorResultDTO;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 	private ErrorResultDTO getErrorObject(String message) {
@@ -57,6 +60,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResultDTO> handleGeneric(Exception ex) {
 		var body = getErrorObject("Internal server error");
+		log.debug("Unexpected exception: ", ex);
 		return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }
