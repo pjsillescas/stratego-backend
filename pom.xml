@@ -101,7 +101,7 @@
 		<dependency>
     		<groupId>org.apache.commons</groupId>
     		<artifactId>commons-lang3</artifactId>
-    		<version>3.20.0</version>
+    		<version>3.20.0</version><!--$NO-MVN-MAN-VER$-->
     		<scope>compile</scope>
 		</dependency>
 		<!-- Source: https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
@@ -110,6 +110,13 @@
 		    <artifactId>commons-collections4</artifactId>
 		    <version>4.5.0</version>
 		    <scope>compile</scope>
+		</dependency>
+		<!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+			<version>4.0.3</version><!--$NO-MVN-MAN-VER$-->
+			<scope>compile</scope>
 		</dependency>
 
 		<!-- JWT support -->
@@ -136,7 +143,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-		
+
 		<!-- Source: https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui -->
 		<dependency>
 		    <groupId>org.springdoc</groupId>
@@ -147,7 +154,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-hateoas</artifactId>
-			<version>4.0.1</version>
+			<version>4.0.1</version><!--$NO-MVN-MAN-VER$-->
 		</dependency>
 	</dependencies>
 
