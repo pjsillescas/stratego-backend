@@ -20,11 +20,13 @@ public class ChatController {
 	@NonNull
 	private final SimpMessagingTemplate messagingTemplate;
 
-	@MessageMapping("/game/{id}/chat")
+	/*
+	//@MessageMapping("/game/{id}/chat")
 	public void sendChat(@DestinationVariable Long id, ChatMessageDTO message, Principal principal) {
 
 		message.setSender(principal.getName());
 
 		messagingTemplate.convertAndSend("/topic/game/%d/chat".formatted(id), message);
 	}
+	*/
 }

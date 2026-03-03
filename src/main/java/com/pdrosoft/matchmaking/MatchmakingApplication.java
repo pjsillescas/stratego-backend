@@ -20,6 +20,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 		"com.pdrosoft.matchmaking.stratego.dao", //
 		
 		"com.pdrosoft.matchmaking.swagger", //
+		"com.pdrosoft.matchmaking.chat.config", //
 })
 public class MatchmakingApplication {
 
