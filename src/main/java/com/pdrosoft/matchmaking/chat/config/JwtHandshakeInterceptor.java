@@ -1,6 +1,7 @@
 package com.pdrosoft.matchmaking.chat.config;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,43 +22,36 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(onConstructor_ = { @Autowired })
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
+	private static final String AUTHORIZATION_HEADER = "Authorization";
+	private static final String BEARER_HEADER_PREFIX = "Bearer ";
+
 	@NonNull
-    private final JwtUtil jwtUtil;
+	private final JwtUtil jwtUtil;
 
-    @Override
-    public boolean beforeHandshake(ServerHttpRequest request,
-                                   ServerHttpResponse response,
-                                   WebSocketHandler wsHandler,
-                                   Map<String, Object> attributes) throws Exception {
+	@Override
+	public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
+			Map<String, Object> attributes) throws Exception {
 
-        if (request instanceof ServletServerHttpRequest servletRequest) {
+		if (request instanceof ServletServerHttpRequest servletRequest) {
 
-            HttpServletRequest req = servletRequest.getServletRequest();
-            String authHeader = req.getHeader("Authorization");
+			HttpServletRequest req = servletRequest.getServletRequest();
 
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return false;
-            }
+			return Optional.ofNullable(req.getHeader(AUTHORIZATION_HEADER)) //
+					.filter(header -> header.startsWith(BEARER_HEADER_PREFIX)) //
+					.map(header -> header.substring(BEARER_HEADER_PREFIX.length())) // Get token
 
-            String token = authHeader.substring(7);
+					.filter(jwtUtil::isTokenValid).map(token -> {
+						attributes.put("username", jwtUtil.extractUsername(token));
 
-            if (!jwtUtil.isTokenValid(token)) {
-                return false;
-            }
+						return true;
+					}).orElse(false);
+		}
 
-            String username = jwtUtil.extractUsername(token);
-            attributes.put("username", username);
+		return false;
+	}
 
-            return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    public void afterHandshake(ServerHttpRequest request,
-                               ServerHttpResponse response,
-                               WebSocketHandler wsHandler,
-                               @Nullable Exception exception) {
-    }
+	@Override
+	public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
+			@Nullable Exception exception) {
+	}
 }

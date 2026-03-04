@@ -1,10 +1,15 @@
 package com.pdrosoft.matchmaking.chat.config;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -13,19 +18,30 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pdrosoft.matchmaking.exception.NotFoundException;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor(onConstructor_ = { @Autowired })
+@Slf4j
 public class GameWebSocketHandler extends TextWebSocketHandler {
 
 	@NonNull
-	private final ObjectMapper mapper = new ObjectMapper();
+	private final ObjectMapper mapper;
 
 	private final Map<String, WebSocketSession> userSessions = new ConcurrentHashMap<>();
 	private final Map<String, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
+
+	public Map<String, WebSocketSession> getUserSessions() {
+		return userSessions;
+	}
+
+	public Map<String, Set<WebSocketSession>> getRooms() {
+		return rooms;
+	}
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws IOException {
@@ -34,9 +50,9 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
 		// Close previous session if exists
 		if (userSessions.containsKey(username)) {
-			WebSocketSession oldSession = userSessions.get(username);
-			if (oldSession != null && oldSession.isOpen()) {
-				oldSession.close();
+			var optSession = Optional.ofNullable(userSessions.get(username)).filter(oldSession -> oldSession.isOpen());
+			if (optSession.isPresent()) {
+				optSession.get().close();
 			}
 		}
 
@@ -44,7 +60,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
 		rooms.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(session);
 
-		System.out.println(username + " connected to room " + roomId);
+		log.debug(username + " connected to room " + roomId);
 	}
 
 	@Override
@@ -55,7 +71,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
 		String formattedMessage = username + ": " + message.getPayload();
 
-		for (WebSocketSession s : rooms.get(roomId)) {
+		for (WebSocketSession s : CollectionUtils.emptyIfNull(rooms.get(roomId))) {
 			if (s.isOpen()) {
 				s.sendMessage(new TextMessage(formattedMessage));
 			}
@@ -63,19 +79,28 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 	}
 
 	private void cleanup(WebSocketSession session) {
-		// sessions.remove(session);
 		String roomId = getRoomId(session);
-		rooms.getOrDefault(roomId, Set.of()).remove(session);
+		rooms.getOrDefault(roomId, new HashSet<WebSocketSession>()).remove(session);
 	}
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
 		cleanup(session);
-		System.out.println("Player disconnected");
+		log.debug("Player disconnected");
+	}
+
+	private Map<String, String> parseQueryString(String query) {
+		var map = new HashMap<String, String>();
+		Optional.ofNullable(query).map(str -> List.of(str.split("&"))).orElse(List.of()) //
+				.forEach(param -> Optional.ofNullable(param).map(par -> par.split("="))
+						.ifPresent(pair -> map.put(pair[0], pair[1])));
+		return map;
 	}
 
 	private String getRoomId(WebSocketSession session) {
-		return session.getUri().getQuery().split("=")[1];
+		return Optional.ofNullable(session.getUri().getQuery()).map(this::parseQueryString)
+				.map(map -> map.get("roomId")) //
+				.orElseThrow(() -> new NotFoundException("Invalid room or room not found"));
 	}
 
 	@Override

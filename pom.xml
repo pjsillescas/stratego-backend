@@ -184,7 +184,7 @@
 								<exclude>com/pdrosoft/**/GlobalExceptionHandler.class</exclude>
 								<exclude>com/pdrosoft/**/*DTO.*</exclude>
 								<exclude>com/pdrosoft/**/MatchmakingApplication.class</exclude>
-								<exclude>**/config/*</exclude>
+								<!-- <exclude>**/config/*</exclude> -->
 							</excludes>
 							<rules>
 								<rule>

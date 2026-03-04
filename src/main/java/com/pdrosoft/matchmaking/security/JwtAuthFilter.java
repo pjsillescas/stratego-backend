@@ -30,14 +30,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
-		// Let websocket pass for now
-		String path = request.getRequestURI();
-
-		if (path.startsWith("/ws")) {
-		    filterChain.doFilter(request, response);
-		    return;
-		}
-		
 		// Ignore options requests (preflights)
 		if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
 			filterChain.doFilter(request, response);
@@ -64,5 +56,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 		filterChain.doFilter(request, response);
 	}
-	
+
 }
