@@ -1,6 +1,7 @@
 package com.pdrosoft.matchmaking.chat.config;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pdrosoft.matchmaking.chat.dto.ChatMessageDTO;
 import com.pdrosoft.matchmaking.exception.NotFoundException;
 
 import lombok.NonNull;
@@ -69,7 +71,13 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 		String roomId = getRoomId(session);
 		String username = (String) session.getAttributes().get("username");
 
-		String formattedMessage = username + ": " + message.getPayload();
+		//String formattedMessage = username + ": " + message.getPayload();
+		var messageDto = ChatMessageDTO.builder() //
+				.player(username) //
+				.message(message.getPayload()) //
+				.timestamp(Instant.now()) //
+				.build();
+		var formattedMessage = mapper.writeValueAsString(messageDto);
 
 		for (WebSocketSession s : CollectionUtils.emptyIfNull(rooms.get(roomId))) {
 			if (s.isOpen()) {

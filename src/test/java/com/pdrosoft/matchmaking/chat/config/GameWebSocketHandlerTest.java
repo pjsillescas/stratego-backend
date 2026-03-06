@@ -26,6 +26,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pdrosoft.matchmaking.chat.dto.ChatMessageDTO;
 import com.pdrosoft.matchmaking.exception.NotFoundException;
 
 @ExtendWith(MockitoExtension.class)
@@ -129,6 +130,13 @@ public class GameWebSocketHandlerTest {
 	@Test
 	void testAfterConnectionEstablishedWithOpenAndClosedConnections() throws Exception {
 
+		var realMapper = new ObjectMapper();
+		
+		var messageDtoInitial = ChatMessageDTO.builder() //
+				.player(PLAYERNAME1) //
+				.message(MESSAGE) //
+				.build();
+		var textMessage = realMapper.writeValueAsString(messageDtoInitial);
 		var sessionOpen = Mockito.mock(WebSocketSession.class);
 		Mockito.when(sessionOpen.isOpen()).thenReturn(true);
 		var sessionClosed = Mockito.mock(WebSocketSession.class);
@@ -144,6 +152,7 @@ public class GameWebSocketHandlerTest {
 		Mockito.when(session.getAttributes()).thenReturn(attributes);
 		Mockito.when(session.getUri()).thenReturn(uri);
 		Mockito.when(uri.getQuery()).thenReturn(getTestUriQuery(ROOM_ID));
+		Mockito.when(mapper.writeValueAsString(Mockito.any(ChatMessageDTO.class))).thenReturn(textMessage);
 
 		var message = new TextMessage(MESSAGE);
 		gameHandler.handleTextMessage(session, message);
@@ -151,7 +160,10 @@ public class GameWebSocketHandlerTest {
 		var captor = ArgumentCaptor.forClass(TextMessage.class);
 		Mockito.verify(sessionOpen).sendMessage(captor.capture());
 
-		assertThat(captor.getValue().getPayload()).isEqualTo("%s: %s".formatted(PLAYERNAME1, MESSAGE));
+		var messageDto = realMapper.readValue(captor.getValue().getPayload(), ChatMessageDTO.class);
+		//assertThat(captor.getValue().getPayload()).isEqualTo("{\"player\":\"%s\",\"message\"}".formatted(PLAYERNAME1, MESSAGE));
+		assertThat(messageDto.getPlayer()).isEqualTo(PLAYERNAME1);
+		assertThat(messageDto.getMessage()).isEqualTo(MESSAGE);
 
 		Mockito.verifyNoMoreInteractions(session, sessionOpen, sessionClosed, uri);
 	}
