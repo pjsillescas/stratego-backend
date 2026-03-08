@@ -101,7 +101,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 		var map = new HashMap<String, String>();
 		Optional.ofNullable(query).map(str -> List.of(str.split("&"))).orElse(List.of()) //
 				.forEach(param -> Optional.ofNullable(param).map(par -> par.split("="))
-						.ifPresent(pair -> map.put(pair[0], pair[1])));
+						.ifPresent(pair -> map.put(pair[0], pair.length == 2 ? pair[1] : null)));
 		return map;
 	}
 

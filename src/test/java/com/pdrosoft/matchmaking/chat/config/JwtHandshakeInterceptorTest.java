@@ -50,9 +50,9 @@ public class JwtHandshakeInterceptorTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "invalid-value" })
+	@ValueSource(strings = { "invalid-value", "" })
 	@NullSource
-	void testBeforeHandshakeWithoutHeader(String headerValue) throws Exception {
+	void testBeforeHandshakeWithInvalidHeader(String headerValue) throws Exception {
 		var request = Mockito.mock(ServletServerHttpRequest.class);
 		var response = Mockito.mock(ServerHttpResponse.class);
 		var wsHandler = Mockito.mock(WebSocketHandler.class);
@@ -62,6 +62,29 @@ public class JwtHandshakeInterceptorTest {
 		Mockito.when(request.getServletRequest()).thenReturn(servletRequest);
 
 		Mockito.when(servletRequest.getHeader("Authorization")).thenReturn(headerValue);
+		Mockito.when(servletRequest.getQueryString()).thenReturn(null);
+
+		assertThat(handshakeInterceptor.beforeHandshake(request, response, wsHandler, attributes)).isFalse();
+		assertThat(attributes.isEmpty()).isTrue();
+
+		Mockito.verifyNoInteractions(response, wsHandler, jwtUtil);
+		Mockito.verifyNoMoreInteractions(request, servletRequest);
+	}
+	
+	@ParameterizedTest
+	@ValueSource(strings = { "q1=1", "tokenn=invalid-value", "token=" })
+	@NullSource
+	void testBeforeHandshakeWithInvalidQueryString(String queryString) throws Exception {
+		var request = Mockito.mock(ServletServerHttpRequest.class);
+		var response = Mockito.mock(ServerHttpResponse.class);
+		var wsHandler = Mockito.mock(WebSocketHandler.class);
+		Map<String, Object> attributes = new HashMap<String, Object>();
+
+		HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+		Mockito.when(request.getServletRequest()).thenReturn(servletRequest);
+
+		Mockito.when(servletRequest.getHeader("Authorization")).thenReturn(null);
+		Mockito.when(servletRequest.getQueryString()).thenReturn(queryString);
 
 		assertThat(handshakeInterceptor.beforeHandshake(request, response, wsHandler, attributes)).isFalse();
 		assertThat(attributes.isEmpty()).isTrue();
@@ -75,7 +98,7 @@ public class JwtHandshakeInterceptorTest {
 	}
 
 	@Test
-	void testBeforeHandshakeInvalidToken() throws Exception {
+	void testBeforeHandshakeInvalidTokenFromHeader() throws Exception {
 		var request = Mockito.mock(ServletServerHttpRequest.class);
 		var response = Mockito.mock(ServerHttpResponse.class);
 		var wsHandler = Mockito.mock(WebSocketHandler.class);
@@ -95,7 +118,7 @@ public class JwtHandshakeInterceptorTest {
 	}
 
 	@Test
-	void testBeforeHandshakeValidToken() throws Exception {
+	void testBeforeHandshakeValidTokenFromHeader() throws Exception {
 		var request = Mockito.mock(ServletServerHttpRequest.class);
 		var response = Mockito.mock(ServerHttpResponse.class);
 		var wsHandler = Mockito.mock(WebSocketHandler.class);
@@ -105,6 +128,50 @@ public class JwtHandshakeInterceptorTest {
 		Mockito.when(request.getServletRequest()).thenReturn(servletRequest);
 
 		Mockito.when(servletRequest.getHeader("Authorization")).thenReturn(getBearer(VALID_TOKEN));
+		Mockito.when(jwtUtil.isTokenValid(VALID_TOKEN)).thenReturn(true);
+		Mockito.when(jwtUtil.extractUsername(VALID_TOKEN)).thenReturn(PLAYER_NAME);
+
+		assertThat(handshakeInterceptor.beforeHandshake(request, response, wsHandler, attributes)).isTrue();
+		assertThat(attributes.isEmpty()).isFalse();
+		assertThat(attributes.get("username")).isEqualTo(PLAYER_NAME);
+
+		Mockito.verifyNoInteractions(response, wsHandler);
+		Mockito.verifyNoMoreInteractions(request, servletRequest, jwtUtil);
+	}
+
+	@Test
+	void testBeforeHandshakeInvalidTokenFromQueryString() throws Exception {
+		var request = Mockito.mock(ServletServerHttpRequest.class);
+		var response = Mockito.mock(ServerHttpResponse.class);
+		var wsHandler = Mockito.mock(WebSocketHandler.class);
+		Map<String, Object> attributes = new HashMap<String, Object>();
+
+		HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+		Mockito.when(request.getServletRequest()).thenReturn(servletRequest);
+
+		Mockito.when(servletRequest.getHeader("Authorization")).thenReturn(null);
+		Mockito.when(servletRequest.getQueryString()).thenReturn("token=%s".formatted(INVALID_TOKEN));
+		Mockito.when(jwtUtil.isTokenValid(INVALID_TOKEN)).thenReturn(false);
+
+		assertThat(handshakeInterceptor.beforeHandshake(request, response, wsHandler, attributes)).isFalse();
+		assertThat(attributes.isEmpty()).isTrue();
+
+		Mockito.verifyNoInteractions(response, wsHandler);
+		Mockito.verifyNoMoreInteractions(request, servletRequest, jwtUtil);
+	}
+
+	@Test
+	void testBeforeHandshakeValidTokenFromQueryString() throws Exception {
+		var request = Mockito.mock(ServletServerHttpRequest.class);
+		var response = Mockito.mock(ServerHttpResponse.class);
+		var wsHandler = Mockito.mock(WebSocketHandler.class);
+		Map<String, Object> attributes = new HashMap<String, Object>();
+
+		HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+		Mockito.when(request.getServletRequest()).thenReturn(servletRequest);
+
+		Mockito.when(servletRequest.getHeader("Authorization")).thenReturn(null);
+		Mockito.when(servletRequest.getQueryString()).thenReturn("token=%s".formatted(VALID_TOKEN));
 		Mockito.when(jwtUtil.isTokenValid(VALID_TOKEN)).thenReturn(true);
 		Mockito.when(jwtUtil.extractUsername(VALID_TOKEN)).thenReturn(PLAYER_NAME);
 
