@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pdrosoft.matchmaking.chat.dto.NotificationDTO;
+import com.pdrosoft.matchmaking.chat.service.NotificationService;
 import com.pdrosoft.matchmaking.dto.PlayerDTO;
 import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.model.Game;
@@ -50,6 +52,8 @@ public class StrategoServiceImpl implements StrategoService {
 	private final RankService rankService;
 	@NonNull
 	private final ObjectMapper mapper;
+	@NonNull
+	private final NotificationService notificationService;
 
 	private PlayerDTO toPlayerDTO(Player player) {
 		return PlayerDTO.builder().id(player.getId()).username(player.getUserName()).build();
@@ -121,6 +125,15 @@ public class StrategoServiceImpl implements StrategoService {
 
 		return strategoStatusRepository.save(status);
 	}
+	
+	private void sendNotification(Long gameId, GamePhase gamePhase, String message) {
+		var notification = NotificationDTO.builder() //
+				.gamePhase(gamePhase) //
+				.message(message) //
+				.build();
+		var roomId = Long.toString(gameId);
+		notificationService.sendNotification(roomId, notification);
+	}
 
 	private boolean isPlayerId(Integer playerId, Player player2) {
 		return Optional.ofNullable(player2).map(Player::getId).filter(id -> id == playerId).isPresent();
@@ -168,6 +181,9 @@ public class StrategoServiceImpl implements StrategoService {
 		gameRepository.save(game);
 
 		strategoStatusRepository.save(status);
+		
+		sendNotification(gameId, game.getPhase(), "Add setup");
+
 		return GameStateDTO.builder() //
 				.currentPlayer(toPlayerDTO(player)) //
 				.hostPlayerId(Optional.ofNullable(game.getHost()).map(Player::getId).orElse(0)) //
@@ -311,6 +327,8 @@ public class StrategoServiceImpl implements StrategoService {
 
 		strategoMovementRepository.save(move);
 
+		sendNotification(gameId, game.getPhase(), "Add movement");
+		
 		return GameStateDTO.builder() //
 				.currentPlayer(toPlayerDTO(player)) //
 				.hostPlayerId(Optional.ofNullable(game.getHost()).map(Player::getId).orElse(0)) //

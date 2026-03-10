@@ -30,6 +30,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pdrosoft.matchmaking.chat.dto.NotificationDTO;
+import com.pdrosoft.matchmaking.chat.service.NotificationService;
 import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.model.Game;
 import com.pdrosoft.matchmaking.model.Player;
@@ -71,6 +73,8 @@ public class StrategoServiceTest {
 	private RankService rankService;
 	@Mock
 	private ObjectMapper mapper;
+	@Mock
+	private NotificationService notificationService;
 
 	@InjectMocks
 	private StrategoServiceImpl strategoService;
@@ -83,6 +87,7 @@ public class StrategoServiceTest {
 
 		assertThatThrownBy(() -> strategoService.getStatus(GAME_ID, player))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Game does not exist");
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	@Test
@@ -96,6 +101,8 @@ public class StrategoServiceTest {
 
 		assertThatThrownBy(() -> strategoService.getStatus(GAME_ID, player))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Game has not been started");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	private static class MovementArgs implements ArgumentsProvider {
@@ -155,6 +162,8 @@ public class StrategoServiceTest {
 			Mockito.verify(mapper).readValue(captor.capture(), Mockito.any(TypeReference.class));
 			assertThat(captor.getValue()).isEqualTo("[{\"rank\":\"MARSHAL\",\"isHost\":true}]");
 		}
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	@Test
@@ -166,6 +175,7 @@ public class StrategoServiceTest {
 
 		assertThatThrownBy(() -> strategoService.addMovement(GAME_ID, player, movementDto))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Game does not exist");
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	@ParameterizedTest
@@ -181,6 +191,7 @@ public class StrategoServiceTest {
 
 		assertThatThrownBy(() -> strategoService.addMovement(GAME_ID, player, movementDto))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Game not in playing state");
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	@Test
@@ -195,6 +206,8 @@ public class StrategoServiceTest {
 
 		assertThatThrownBy(() -> strategoService.addMovement(GAME_ID, player, movementDto))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Game has not been started");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	private StrategoStatus getTestStatus(List<List<BoardTileDTO>> board, Game game) {
@@ -225,6 +238,8 @@ public class StrategoServiceTest {
 		var movingPlayer = isGuestTurn ? host : guest;
 		assertThatThrownBy(() -> strategoService.addMovement(GAME_ID, movingPlayer, movementDto))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Invalid player turn");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	@Test
@@ -248,6 +263,8 @@ public class StrategoServiceTest {
 
 		assertThatThrownBy(() -> strategoService.addMovement(GAME_ID, player, movementDto))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Invalid chosen square");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	@Test
@@ -270,6 +287,8 @@ public class StrategoServiceTest {
 
 		assertThatThrownBy(() -> strategoService.addMovement(GAME_ID, player, movementDto))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("This square cannot move");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	private static class CannotMoveArguments implements ArgumentsProvider {
@@ -305,6 +324,8 @@ public class StrategoServiceTest {
 
 		assertThatThrownBy(() -> strategoService.addMovement(GAME_ID, player, movementDto))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Invalid destination square");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	private static class AddMovementRanksArguments implements ArgumentsProvider {
@@ -399,6 +420,14 @@ public class StrategoServiceTest {
 
 		Mockito.verify(mapper).writeValueAsString(resultCaptor.capture());
 		assertThat(resultCaptor.getValue()).isEqualTo(result);
+
+		var notificationCaptor = ArgumentCaptor.forClass(NotificationDTO.class);
+		Mockito.verify(notificationService).sendNotification(Mockito.eq(GAME_ID.toString()),
+				notificationCaptor.capture());
+		assertThat(notificationCaptor.getValue().getGamePhase()).isEqualTo(GamePhase.PLAYING);
+		assertThat(notificationCaptor.getValue().getMessage()).isEqualTo("Add movement");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	private ArmySetupDTO getValidSetup() {
@@ -424,6 +453,8 @@ public class StrategoServiceTest {
 
 		assertThatThrownBy(() -> strategoService.addSetup(GAME_ID, player, setup))
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Game does not exist");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	private static class InvalidSetupArguments implements ArgumentsProvider {
@@ -461,6 +492,8 @@ public class StrategoServiceTest {
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Invalid player setup");
 
 		Mockito.verifyNoMoreInteractions(strategoStatusRepository);
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	@Test
@@ -479,6 +512,8 @@ public class StrategoServiceTest {
 				.isInstanceOf(MatchmakingValidationException.class).hasMessage("Game not in setup state");
 
 		Mockito.verifyNoMoreInteractions(strategoStatusRepository);
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	private List<List<BoardTileDTO>> getEmptyBoard() {
@@ -549,6 +584,14 @@ public class StrategoServiceTest {
 		assertThat(gameStateDto).isNotNull().satisfies(gameState -> {
 			checkHostBoard(gameState.getBoard(), setup);
 		});
+
+		var notificationCaptor = ArgumentCaptor.forClass(NotificationDTO.class);
+		Mockito.verify(notificationService).sendNotification(Mockito.eq(GAME_ID.toString()),
+				notificationCaptor.capture());
+		assertThat(notificationCaptor.getValue().getGamePhase()).isEqualTo(GamePhase.PLAYING);
+		assertThat(notificationCaptor.getValue().getMessage()).isEqualTo("Add setup");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	@ParameterizedTest
@@ -590,6 +633,14 @@ public class StrategoServiceTest {
 		assertThat(gameStateDto).isNotNull().satisfies(gameState -> {
 			checkGuestBoard(gameState.getBoard(), setup);
 		});
+
+		var notificationCaptor = ArgumentCaptor.forClass(NotificationDTO.class);
+		Mockito.verify(notificationService).sendNotification(Mockito.eq(GAME_ID.toString()),
+				notificationCaptor.capture());
+		assertThat(notificationCaptor.getValue().getGamePhase()).isEqualTo(GamePhase.PLAYING);
+		assertThat(notificationCaptor.getValue().getMessage()).isEqualTo("Add setup");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	@ParameterizedTest
@@ -643,6 +694,14 @@ public class StrategoServiceTest {
 		assertThat(gameStateDto).isNotNull().satisfies(gameState -> {
 			checkGuestBoard(gameState.getBoard(), setup);
 		});
+
+		var notificationCaptor = ArgumentCaptor.forClass(NotificationDTO.class);
+		Mockito.verify(notificationService).sendNotification(Mockito.eq(GAME_ID.toString()),
+				notificationCaptor.capture());
+		assertThat(notificationCaptor.getValue().getGamePhase()).isEqualTo(nextPhase);
+		assertThat(notificationCaptor.getValue().getMessage()).isEqualTo("Add setup");
+
+		Mockito.verifyNoMoreInteractions(notificationService);
 	}
 
 	private void checkHostBoard(List<List<BoardTileDTO>> board, ArmySetupDTO setup) {

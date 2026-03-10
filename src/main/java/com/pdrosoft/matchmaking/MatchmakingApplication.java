@@ -21,6 +21,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 		
 		"com.pdrosoft.matchmaking.swagger", //
 		"com.pdrosoft.matchmaking.chat.config", //
+		"com.pdrosoft.matchmaking.chat.service", //
 })
 public class MatchmakingApplication {
 
