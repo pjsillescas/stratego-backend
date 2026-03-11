@@ -15,13 +15,18 @@ import lombok.RequiredArgsConstructor;
 public class WebSocketConfig implements WebSocketConfigurer {
 
 	@NonNull
-	private final GameWebSocketHandler handler;
+	private final GameWebSocketHandler gameHandler;
+	@NonNull
+	private final GameNotificationWebSocketHandler notificationHandler;
 	@NonNull
 	private final JwtHandshakeInterceptor jwtInterceptor;
 
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		registry.addHandler(handler, "/ws") //
+		registry.addHandler(gameHandler, "/ws") //
+				.addInterceptors(jwtInterceptor) //
+				.setAllowedOrigins("*");
+		registry.addHandler(notificationHandler, "/wsn") //
 				.addInterceptors(jwtInterceptor) //
 				.setAllowedOrigins("*");
 	}
