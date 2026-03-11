@@ -357,7 +357,7 @@ public class GameWebSocketHandlerTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "q1=2", "roomId1=1" })
+	@ValueSource(strings = { "q1=2", "roomId1=1", "q1=" })
 	@NullSource
 	void testHandleTransportErrorInvalidRoomId(String query) throws IOException {
 		var uri = Mockito.mock(URI.class);
